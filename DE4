@@ -7,6 +7,7 @@ to do: add hit logs switch to turn on and off, fix clan tag switch to turn on an
 
 
 
+
 local username = common.get_username()
 
 local text_console_1 = 'Welcome to XOL, ' .. username  
@@ -99,6 +100,7 @@ local phrases = {
     end
     end)
 
+
 --ffi
 local ffi = require('ffi')
 local ffi_handler = {}
@@ -124,7 +126,7 @@ ffi.C.CreateDirectoryA("nl\\envy", nil)
 
 local aa_library = require("neverlose/anti_aim")
 local group = ui.create("Visuals", "Indicators")
-local combo = group:combo("Indicator Styles", {"Simple"}, 0)
+local combo = group:combo("Indicator Styles", {"Disabled", "Simple", "Ideal Yaw"}, 0)
 local player = entity.get_local_player()
 local verdana = render.load_font("Verdana", 12)
 
@@ -149,7 +151,7 @@ local on_crate_move = function(cmd)
     end
 end
 
---indicators
+--Simple
 
 local x = render.screen_size().x/2
 local y = render.screen_size().y/2
@@ -164,8 +166,7 @@ local font = render.load_font("nl\\envy\\smallest_pixel-7.ttf", 10, 'o')
 events.render:set(function()
     local lp = entity.get_local_player()
     
-    add_y = 20
-	add_x=20
+    add_y = 15
     if not lp or not lp:is_alive() then return end
     if not combo:get() == "Simple" then return end
 
@@ -175,6 +176,10 @@ events.render:set(function()
         local desync_state = aa_library.get_inverter_state() and "R" or "L"
         if lp.m_bIsScoped then anim[4] = lerpik(anim[4], -40, globals.frametime * 5) else anim[4] = lerpik(anim[4], 0, globals.frametime * 100) end
 
+        local alpha = math.min(math.floor(math.sin((globals.curtime%3) * 4) * 175 + 50), 255)
+
+        render.text(font, vector(x - anim[4], y + add_y), color(255, 130, 130, alpha), 'c', "DEV")
+        add_y = add_y + 9
 
         render.text(font, vector(x - anim[4], y + add_y), color(255, 255, 255, 255), 'c', "ENVY")
         add_y = add_y + 9
@@ -196,7 +201,7 @@ events.render:set(function()
             end
             anim[1] = lerpik(anim[1], 0, globals.frametime * 11)
         end
-        render.text(font, vector(x - anim[4], y + add_y), charge_clr, 'c', "dt")
+        render.text(font, vector(x - anim[4], y + add_y), charge_clr, 'c', "doubletap")
 
         if isHS:get() then
             anim[2] = lerpik(anim[2], 255, globals.frametime * 11)
@@ -207,7 +212,7 @@ events.render:set(function()
             end
             anim[2] = lerpik(anim[2], 0, globals.frametime * 11)
         end
-        render.text(font, vector(x - anim[4], y + add_y), color(96, 239, 76, anim[2]), 'c', "hs")
+        render.text(font, vector(x - anim[4], y + add_y), color(137, 174, 255, anim[2]), 'c', "on-shot")
 
         if isFD:get() then
             anim[3] = lerpik(anim[3], 255, globals.frametime * 11)
@@ -221,3 +226,49 @@ events.render:set(function()
         render.text(font, vector(x - anim[4], y + add_y), color(227, 139, 25, anim[3]), 'c', "duck")
     end
 end)
+
+
+--IDEAL YAW
+local ideal_ind = function()
+
+    local lp = entity.get_local_player()
+    if not lp or not lp:is_alive() then return end
+    if not combo:get() == "Ideal Yaw" then return end
+
+    if combo:get() == "Ideal Yaw" then
+        local ay = 0
+        local x = render.screen_size().x/2
+        local y = render.screen_size().y/2 + 20
+        
+        render.text(verdana, vector(x + 1, y), color(0, 0, 0, 255), nil, "IDEAL YAW")
+        render.text(verdana, vector(x, y), color(220, 135, 49, 255), nil, "IDEAL YAW")
+        ay = ay + 10
+        if isFS:get() then
+            render.text(verdana, vector(x + 1, y + ay), color(0, 0, 0, 255), nil, "FREESTAND")
+            render.text(verdana, vector(x, y + ay), color(209, 159, 230, 255), nil, "FREESTAND")
+            ay = ay + 10
+        else
+            render.text(verdana, vector(x + 1, y + ay), color(0, 0, 0, 255), nil, "DYNAMIC")
+            render.text(verdana, vector(x, y + ay), color(209, 159, 230, 255), nil, "DYNAMIC")
+            ay = ay + 10
+        end
+        if isDT:get() then
+            local chrg = rage.exploit:get()
+            render.text(verdana, vector(x + 1, y + ay), color(0, 0, 0, 255), nil, "DT")
+            if chrg == 1 then
+                render.text(verdana, vector(x, y + ay), color(0, 255, 0, 255), nil, "DT")
+            else
+                render.text(verdana, vector(x, y + ay), color(255, 0, 0, 255), nil, "DT")
+            end
+            ay = ay + 10
+        end
+        if isHS:get() then
+            render.text(verdana, vector(x + 1, y + ay), color(0, 0, 0, 255), nil, "AA")
+            render.text(verdana, vector(x, y + ay), color(120, 128, 200, 255), nil, "AA")
+            ay = ay + 10
+        end
+    end
+end
+
+
+events.render:set(ideal_ind)
