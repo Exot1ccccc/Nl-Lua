@@ -1,8 +1,7 @@
-
 local username = common.get_username()
 
-local text3 = 'Welcome to XOL, ' .. username  
-print(text3)
+local text_console_1 = 'Welcome to XOL, ' .. username  
+print(text_console_1)
 
 group = ui.create("Main")
 
@@ -17,6 +16,8 @@ group = ui.create("Anti Aim", "Anti Aim")
 
 
 group = ui.create("Misc", "Misc")
+
+
 
 
 
