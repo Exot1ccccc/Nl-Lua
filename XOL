@@ -1,1 +1,22 @@
-mesit is a faggot
+
+local username = common.get_username()
+
+local text3 = 'Welcome to XOL, ' .. username  
+print(text3)
+
+group = ui.create("Main")
+
+group:button("Discord", function()
+	utils.console_exec("connect 74.91.124.24:27015")
+end)
+
+
+group = ui.create("Anti Aim", "Anti Aim")
+
+
+
+
+group = ui.create("Misc", "Misc")
+
+
+
