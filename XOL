@@ -13,7 +13,7 @@ end)
 local ui_m = ui.create('Testing')
 
 ui_m:button("Link", function()
-    panorama.SteamOverlayAPI.OpenExternalBrowserURL("https://discord.gg/x7apEMqKmG%22)
+    panorama.SteamOverlayAPI.OpenExternalBrowserURL("https://discord.gg/x7apEMqKmG%22")
 end)
 
 group = ui.create("Anti Aim", "Anti Aim")
