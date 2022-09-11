@@ -1,31 +1,222 @@
+--completed menu, added indicators ( pasted as hell ), aspect ratio, view model
+--to do: add hit logs switch to turn on and off, fix clan tag switch to turn on and off and add in AA and more indicator styles.
+
+
+
+
+
 
 local username = common.get_username()
 
 local text_console_1 = 'Welcome to XOL, ' .. username  
 print(text_console_1)
 
-group = ui.create("Main")
-
-group:button("Discord", function()
-	utils.console_exec("connect 74.91.124.24:27015")
-end)
-
-local ui_m = ui.create('Testing')
-
-ui_m:button("Link", function()
+group = ui.create("Info")
+local ui_m = ui.create('Info')
+ui_m:button("Discord", function()
     panorama.SteamOverlayAPI.OpenExternalBrowserURL("https://discord.gg/x7apEMqKmG%22")
 end)
-
+	
+    
 group = ui.create("Anti Aim", "Anti Aim")
 
-
-group:button("Test1", function()
-	utils.console_exec("connect 74.91.124.24:27015")
+group:button("AA", function()
 end)
 
 group = ui.create("Misc", "Misc")
 
 
-group:button("Test2", function()
-	utils.console_exec("connect 74.91.124.24:27015")
+--- view model and aspect ratio changer
+_DEBUG = true
+
+group = ui.create("Misc", "Misc")
+aspect_ratio_switch = group:switch("Aspect Ratio", false)
+viewmodel_switch = group:switch("Viewmodel", false)
+phrases = group:switch ("Killsay", true)
+
+viewmodel_ref = viewmodel_switch:create()
+viewmodel_fov = viewmodel_ref:slider("FOV", -100, 100, 68)
+viewmodel_x = viewmodel_ref:slider("X", -10, 10, 2.5)
+viewmodel_y = viewmodel_ref:slider("Y", -10, 10, 0)
+viewmodel_z = viewmodel_ref:slider("Z", -10, 10, -1.5)
+
+aspectratio_ref = aspect_ratio_switch:create()
+aspect_ratio_slider = aspectratio_ref:slider("Value", 0, 20, 0, 0.1)
+
+events.createmove:set(function()
+    if aspect_ratio_switch:get() then
+        cvar.r_aspectratio:float(aspect_ratio_slider:get()/10)
+    else
+        cvar.r_aspectratio:float(0)
+    end
+end)
+
+events.createmove:set(function()
+    if viewmodel_switch:get() then
+        cvar.viewmodel_fov:int(viewmodel_fov:get(), true)
+        cvar.viewmodel_offset_x:float(viewmodel_x:get(), true)
+        cvar.viewmodel_offset_y:float(viewmodel_y:get(), true)
+        cvar.viewmodel_offset_z:float(viewmodel_z:get(), true)
+    else
+        cvar.viewmodel_fov:int(68)
+        cvar.viewmodel_offset_x:float(2.5)
+        cvar.viewmodel_offset_y:float(0)
+        cvar.viewmodel_offset_z:float(-1.5)
+    end
+end)
+
+events.shutdown:set(function()
+    cvar.viewmodel_fov:int(68)
+    cvar.viewmodel_offset_x:float(2.5)
+    cvar.viewmodel_offset_y:float(0)
+    cvar.viewmodel_offset_z:float(-1.5)
+end)
+
+
+local phrases = {
+        "xol king style",
+       "n1 shit bot",
+       "1?",
+       "too easy for the king",
+       "wtf is ur resolver",
+       "you were close",
+       "almost",
+       "nice try",
+       "ggs",
+       "what is ur iq bro" }
+    
+    local function get_phrases()
+    return phrases[utils.random_int(1, #phrases)]:gsub('"', '')
+    end
+    
+    events.player_death:set(function(e)
+    local me = entity.get_local_player()
+    local attacker = entity.get(e.attacker, true)
+    
+    if me == attacker then
+    utils.console_exec('say "' .. get_phrases() .. '"')
+    end
+    end)
+
+--ffi
+local ffi = require('ffi')
+local ffi_handler = {}
+local renders = {}
+local main = {}
+ffi.cdef[[
+    bool URLDownloadToFileA(void* LPUNKNOWN, const char* LPCSTR, const char* LPCSTR2, int a, int LPBINDSTATUSCALLBACK);
+    bool DeleteUrlCacheEntryA(const char* lpszUrlName);
+    bool CreateDirectoryA(
+        const char*                lpPathName,
+        void*                      lpSecurityAttributes
+    );
+]]
+local urlmon = ffi.load 'UrlMon'
+local wininet = ffi.load 'WinInet'
+ffi_handler.download_file = function(url, path)
+    wininet.DeleteUrlCacheEntryA(url)
+    urlmon.URLDownloadToFileA(nil, url, path, 0,0)
+end    
+
+-- files
+ffi.C.CreateDirectoryA("nl\\envy", nil)
+
+local aa_library = require("neverlose/anti_aim")
+local group = ui.create("Visuals", "Indicators")
+local combo = group:combo("Indicator Styles", {"Simple"}, 0)
+local player = entity.get_local_player()
+local verdana = render.load_font("Verdana", 12)
+
+local isBA = ui.find("Aimbot", "Ragebot", "Safety", "Body Aim")
+local isSP = ui.find("Aimbot", "Ragebot", "Safety", "Safe Points")
+local isDT = ui.find("Aimbot", "Ragebot", "Main", "Double Tap")
+local isAP = ui.find("Aimbot", "Ragebot", "Main", "Peek Assist")
+local isSW = ui.find("Aimbot", "Anti Aim", "Misc", "Slow Walk")
+local isHS = ui.find("Aimbot", "Ragebot", "Main", "Hide Shots")
+local isFS = ui.find("Aimbot", "Anti Aim", "Angles", "Freestanding")
+local isFD = ui.find("Aimbot", "Anti Aim", "Misc", "Fake Duck")
+
+local condition = ""
+local on_crate_move = function(cmd)
+    if cmd.in_use then condition = "USE"
+    elseif cmd.in_jump and not common.is_button_down(0x11) then condition = "JUMP"
+    elseif cmd.in_jump and common.is_button_down(0x11) then condition = "JUMP+C"
+    elseif cmd.in_duck or common.is_button_down(0x11) then condition = "DUCK"
+    elseif common.is_button_down(0x41) and not common.is_button_down(0x10) or common.is_button_down(0x44) and not common.is_button_down(0x10) or common.is_button_down(0x53) and not common.is_button_down(0x10) or common.is_button_down(0x57) and not common.is_button_down(0x10) then condition = "MOVING"
+    elseif common.is_button_down(0x10) then condition = "WALK"
+    else condition = "STANDING"
+    end
+end
+
+--indicators
+
+local x = render.screen_size().x/2
+local y = render.screen_size().y/2
+
+local lerpik = function (a, b, percentage) return math.floor(a + (b - a) * percentage) end
+
+local anim = {0, 0, 0, 0, 0}
+local font = render.load_font("nl\\immortal\\smallest_pixel-7.ttf", 10, 'o')
+
+
+
+events.render:set(function()
+    local lp = entity.get_local_player()
+    
+    add_y = 20
+	add_x=20
+    if not lp or not lp:is_alive() then return end
+    if not combo:get() == "Simple" then return end
+
+    if combo:get() == "Simple" then
+
+        local charge_clr = rage.exploit:get() == 1 and color(126, 214, 136, anim[1]) or color(226, 54, 55, anim[1])
+        local desync_state = aa_library.get_inverter_state() and "R" or "L"
+        if lp.m_bIsScoped then anim[4] = lerpik(anim[4], -40, globals.frametime * 5) else anim[4] = lerpik(anim[4], 0, globals.frametime * 100) end
+
+
+        render.text(font, vector(x - anim[4], y + add_y), color(255, 255, 255, 255), 'c', "ENVY")
+        add_y = add_y + 9
+
+        events.createmove:set(on_crate_move)
+        local cond = "-" .. condition .. "-"
+        render.text(font, vector(x - anim[4], y + add_y), color(255, 255, 255, 255), 'c', cond)
+        add_y = add_y + 9
+
+        render.text(font, vector(x - anim[4], y + add_y), color(163, 199, 255, 255), 'c', "FAKEYAW: ")
+        render.text(font, vector(x + 20 - anim[4], y + add_y), color(255, 255, 255, 255), 'c', desync_state)
+
+        if isDT:get() then
+            anim[1] = lerpik(anim[1], 255, globals.frametime * 11)
+            add_y = add_y + 9
+        else
+            if anim[1] > 0 then
+                add_y = add_y + 9
+            end
+            anim[1] = lerpik(anim[1], 0, globals.frametime * 11)
+        end
+        render.text(font, vector(x - anim[4], y + add_y), charge_clr, 'c', "dt")
+
+        if isHS:get() then
+            anim[2] = lerpik(anim[2], 255, globals.frametime * 11)
+            add_y = add_y + 9
+        else
+            if anim[2] > 0 then
+                add_y = add_y + 9
+            end
+            anim[2] = lerpik(anim[2], 0, globals.frametime * 11)
+        end
+        render.text(font, vector(x - anim[4], y + add_y), color(96, 239, 76, anim[2]), 'c', "hs")
+
+        if isFD:get() then
+            anim[3] = lerpik(anim[3], 255, globals.frametime * 11)
+            add_y = add_y + 9
+        else
+            if anim[3] > 0 then
+                add_y = add_y + 9
+            end
+            anim[3] = lerpik(anim[3], 0, globals.frametime * 11)
+        end
+        render.text(font, vector(x - anim[4], y + add_y), color(227, 139, 25, anim[3]), 'c', "duck")
+    end
 end)
