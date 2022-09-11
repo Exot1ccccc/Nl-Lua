@@ -1,3 +1,4 @@
+
 local username = common.get_username()
 
 local text_console_1 = 'Welcome to XOL, ' .. username  
@@ -13,11 +14,13 @@ end)
 group = ui.create("Anti Aim", "Anti Aim")
 
 
-
+group:button("Test1", function()
+	utils.console_exec("connect 74.91.124.24:27015")
+end)
 
 group = ui.create("Misc", "Misc")
 
 
-
-
-
+group:button("Test2", function()
+	utils.console_exec("connect 74.91.124.24:27015")
+end)
