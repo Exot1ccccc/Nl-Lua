@@ -6,6 +6,7 @@ to do: add hit logs switch to turn on and off, fix clan tag switch to turn on an
 
 
 
+
 local username = common.get_username()
 
 local text_console_1 = 'Welcome to XOL, ' .. username  
@@ -156,7 +157,7 @@ local y = render.screen_size().y/2
 local lerpik = function (a, b, percentage) return math.floor(a + (b - a) * percentage) end
 
 local anim = {0, 0, 0, 0, 0}
-local font = render.load_font("nl\\immortal\\smallest_pixel-7.ttf", 10, 'o')
+local font = render.load_font("nl\\envy\\smallest_pixel-7.ttf", 10, 'o')
 
 
 
