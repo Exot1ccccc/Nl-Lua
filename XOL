@@ -10,6 +10,11 @@ group:button("Discord", function()
 	utils.console_exec("connect 74.91.124.24:27015")
 end)
 
+local ui_m = ui.create('Testing')
+
+ui_m:button("Link", function()
+    panorama.SteamOverlayAPI.OpenExternalBrowserURL("https://discord.gg/x7apEMqKmG%22)
+end)
 
 group = ui.create("Anti Aim", "Anti Aim")
 
