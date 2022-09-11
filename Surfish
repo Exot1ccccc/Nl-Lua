@@ -1,1 +1,58 @@
+local hitgroup_str = {
+    [0] = 'generic',
+    'head', 'chest', 'stomach',
+    'left arm', 'right arm',
+    'left leg', 'right leg',
+    'neck', 'generic', 'gear'
+}
 
+events.aim_ack:set(function(e)
+    local me = entity.get_local_player()
+    local target = entity.get(e.target)
+    local damage = e.damage
+    local wanted_damage = e.wanted_damage
+    local wanted_hitgroup = hitgroup_str[e.wanted_hitgroup]
+    local hitchance = e.hitchance
+    local state = e.state
+    local bt = e.backtrack
+    if not target then return end
+    if target == nil then return end
+    local health = target["m_iHealth"]
+
+
+    local hitgroup = hitgroup_str[e.hitgroup]
+    
+    if state == nil then
+        print_dev(("[+] Hit %s in %s for %d("..string.format("%.f", wanted_damage)..") (hp: "..health..") (aimed: "..wanted_hitgroup..") (bt: %s)"):format(target:get_name(), hitgroup, e.damage, bt))
+        print_raw(("\a99BD2C[+] \aD5D5D5Hit %s in %s for %d("..string.format("%.f", wanted_damage)..") (hp: "..health..") (aimed: "..wanted_hitgroup..") (bt: %s)"):format(target:get_name(), hitgroup, e.damage, bt))
+    else
+        print_dev(('Missed %s in the %s due to '..state..' (hc: '..string.format("%.f", hitchance)..') (damage: '..string.format("%.f", wanted_damage)..')'):format(target:get_name(), wanted_hitgroup, state1))
+        print_raw(('\aF96D6D[-] \aD5D5D5Missed %s in the %s due to '..state..' (hc: '..string.format("%.f", hitchance)..') (damage: '..string.format("%.f", wanted_damage)..')'):format(target:get_name(), wanted_hitgroup, state1))
+    end
+end)
+
+
+events.player_hurt:set(function(e)
+    local me = entity.get_local_player()
+    local attacker = entity.get(e.attacker, true)
+    local weapon = e.weapon
+    local type_hit = 'Hit'
+
+    if weapon == 'hegrenade' or weapon == 'inferno' then 
+        type_hit = 'Naded'
+    end
+
+    if weapon == 'knife' then 
+        type_hit = 'Knifed'
+    end
+
+    if weapon == 'hegrenade' or weapon == 'inferno' or weapon == 'knife' then
+
+    if me == attacker then
+        local user = entity.get(e.userid, true)
+        print_raw(('\a87BD2C[gamesense] \aD5D5D5'..type_hit..' %s for %d damage (%d health remaining)'):format(user:get_name(), e.dmg_health, e.health))
+        print_dev((''..type_hit..' %s for %d damage (%d health remaining)'):format(user:get_name(), e.dmg_health, e.health))
+    end
+
+    end--]]
+end)
